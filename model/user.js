@@ -5,6 +5,9 @@ const userSchema = new mongoose.Schema({
     last_name: { type: String, required: true, trim: true, lowercase: true },
     email: { type: String, requried: true, unique: true, lowercase: true },
     password: { type: String, required: true, trim: true, minLength: 9 },
+    role: {type: String,
+        enum: ['admin','user'],
+        default : 'user'},
     token: { type: String },
 });
 

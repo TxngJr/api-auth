@@ -5,20 +5,20 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs")
 
-const auth = require("./middleware/auth");
+const {checkRole,verifyToken} = require("./middleware/auth");
 const User = require("./model/user");
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/home", auth, (req,res)=>{
-    res.status(200).send("Welcome");
+app.get("/home", verifyToken, checkRole(["admin","hero"]), (req, res) => {
+    console.log(req.user);
+    res.status(200).send(req.user);
 });
 
 app.post("/register", async (req, res) => {
     try {
-
         const { first_name, last_name, email, password } = req.body;
         if (!(first_name && last_name && email && password)) {
             return res.status(400).json({
@@ -39,7 +39,7 @@ app.post("/register", async (req, res) => {
             email,
             password: encryptedPassword,
         });
-        const token = jwt.sign({ user_id: user._id, email }, process.env.TOKEN_KEY, { expiresIn: "1h", });
+        const token = jwt.sign({ user_id: user._id, email, role: user.role }, process.env.TOKEN_KEY);
         user.token = token;
         return res.status(201).json(user);
     } catch (error) {
@@ -59,7 +59,7 @@ app.post("/login", async (req, res) => {
         };
         const user = await User.findOne({ email });
         if (user && (await bcrypt.compare(password, user.password))) {
-            const token = jwt.sign({ user_id: user._id, email }, process.env.TOKEN_KEY, { expiresIn: "1h", });
+            const token = jwt.sign({ user_id: user._id, email,role: user.role }, process.env.TOKEN_KEY);
             user.token = token;
             return res.status(200).json(user);
         };

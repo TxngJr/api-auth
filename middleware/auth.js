@@ -19,5 +19,16 @@ const verifyToken = (req,res,next)=>{
     };
     return next();
 };
+const checkRole = (permissions)=>{
+    return (req,res,next)=>{
+        if(permissions.includes(req.user.role)){
+            next();
+        }else{
+            return res.status(401).json({
+                "message": "You don\'t have permission!"
+            });
+        };
+    };
+};
 
-module.exports = verifyToken;
+module.exports = {verifyToken,checkRole};
